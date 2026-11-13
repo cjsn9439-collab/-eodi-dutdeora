@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f0f3fb">
+<title>어디 뒀더라?</title>
+<style>
+:root{--blue:#2864e8;--navy:#172957;--muted:#69778e;--pale:#f0f3fb;--line:#e5eaf3;--white:#fff}
+*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--navy);font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}
+.app{width:min(100%,620px);min-height:100vh;margin:auto;padding-bottom:22px;background:#fff}
+header{height:86px;padding:0 26px;display:flex;align-items:center;justify-content:space-between;background:#fff}
+.logo{font-size:29px;font-weight:850;letter-spacing:-1.6px;color:#111}
+.bell{border:0;background:transparent;color:#555;font-size:25px;padding:8px}
+main{margin:0 16px;background:var(--pale);border-radius:27px;padding:24px 20px 12px;min-height:calc(100vh - 112px)}
+h1{font-size:27px;line-height:1.25;letter-spacing:-1.2px;margin:13px 0 25px;color:var(--navy)}
+.search{height:58px;background:#fff;border-radius:20px;display:flex;align-items:center;padding:0 18px;gap:12px;margin-bottom:28px}
+.search span{font-size:24px;color:#64738a}.search input{border:0;outline:0;width:100%;font-size:17px;color:var(--navy);background:transparent}.search input::placeholder{color:#7c899d}
+.heading{font-size:21px;font-weight:800;margin:0 0 15px}
+.categories{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.category{height:164px;border:0;border-radius:24px;background:white;text-align:left;padding:22px 20px;color:var(--navy);display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;box-shadow:0 2px 5px #14264b05}
+.category:active{transform:scale(.985)}.cat-icon{font-size:29px;line-height:1;color:var(--blue)}.cat-name{font-size:22px;font-weight:800;letter-spacing:-.8px}.cat-count{font-size:17px;color:#718097}
+.add{height:78px;width:100%;border:0;border-radius:23px;background:var(--blue);color:white;font-size:22px;font-weight:800;margin-top:17px;letter-spacing:-.6px;box-shadow:0 5px 12px #2864e822}
+nav{display:grid;grid-template-columns:repeat(4,1fr);padding:15px 2px 2px}
+nav button{border:0;background:transparent;color:#697991;font-size:25px;padding:4px}
+nav button.active{color:var(--blue)}
+.view{display:none}.view.active{display:block}
+.list-head{display:flex;justify-content:space-between;align-items:center;margin:6px 0 14px}.list-head h2{font-size:21px;margin:0}
+.items{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.item{background:white;border-radius:16px;padding:12px;min-width:0}
+.thumb{height:90px;border-radius:12px;background:#edf2fb;display:grid;place-items:center;font-size:30px;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.item strong{display:block;font-size:14px;margin-top:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item small{display:block;color:var(--muted);margin-top:5px;font-size:11px}
+.actions{display:flex;gap:5px;margin-top:9px}.actions button{flex:1;border:1px solid var(--line);background:white;border-radius:8px;padding:7px 2px;font-size:11px;color:#53627a}
+.empty{background:white;border-radius:17px;padding:25px;text-align:center;color:var(--muted);grid-column:1/-1;font-size:13px}
+.overlay{position:fixed;inset:0;background:#0d1b3480;display:none;align-items:flex-end;justify-content:center;padding:10px;z-index:5}.overlay.show{display:flex}
+.sheet{background:white;border-radius:24px 24px 16px 16px;width:min(100%,560px);padding:20px;max-height:90vh;overflow:auto}
+.sheettop{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}.sheet h2{font-size:20px;margin:0}.close{border:0;background:#eef1f6;border-radius:50%;width:34px;height:34px;font-size:20px}
+label{display:block;font-size:12px;font-weight:750;margin:13px 0 6px;color:#52617a}
+.field{width:100%;padding:12px;border:1px solid #dce3ee;border-radius:11px;background:white;font-size:14px}
+.save{width:100%;border:0;background:var(--blue);color:white;border-radius:12px;padding:14px;font-weight:800;margin-top:17px}
+.toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#18294e;color:white;border-radius:99px;padding:11px 16px;font-size:12px;opacity:0;transition:.2s;z-index:8;white-space:nowrap}.toast.show{opacity:1}
+@media(min-width:560px){main{margin:0 20px;padding:28px}.category{height:180px}.overlay{align-items:center}.sheet{border-radius:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="logo">어디 뒀더라?</div><button class="bell" id="bell" aria-label="알림">♧</button></header>
+<main>
+<section class="view active" id="homeView">
+<h1>내 물건을 찾아보세요!</h1>
+<div class="search"><span>⌕</span><input id="homeSearch" placeholder="물건 이름을 검색하세요" autocomplete="off"></div>
+<div class="heading">내 보관함</div>
+<div class="categories">
+<button class="category" data-category="전자기기"><span class="cat-icon">▯</span><span class="cat-name">전자기기</span><span class="cat-count" id="count-전자기기">0개</span></button>
+<button class="category" data-category="생활용품"><span class="cat-icon">⌂</span><span class="cat-name">생활용품</span><span class="cat-count" id="count-생활용품">0개</span></button>
+<button class="category" data-category="의류"><span class="cat-icon">♧</span><span class="cat-name">의류</span><span class="cat-count" id="count-의류">0개</span></button>
+<button class="category" data-category="기타"><span class="cat-icon">⬡</span><span class="cat-name">기타</span><span class="cat-count" id="count-기타">0개</span></button>
+</div>
+<button class="add" id="addBtn">＋ 새 물건 등록하기</button>
+<nav>
+<button class="active" data-tab="home" aria-label="홈">⌂</button>
+<button data-tab="search" aria-label="검색">⌕</button>
+<button data-tab="places" aria-label="장소">◎</button>
+<button data-tab="profile" aria-label="내 정보">♙</button>
+</nav>
+</section>
+<section class="view" id="listView">
+<div class="list-head"><h2 id="listTitle">내 물건</h2><button class="close" id="backHome">×</button></div>
+<div class="search"><span>⌕</span><input id="listSearch" placeholder="물건 이름이나 장소 검색"></div>
+<div class="items" id="items"></div>
+</section>
+<section class="view" id="otherView">
+<div class="list-head"><h2 id="otherTitle">내 정보</h2><button class="close" id="otherBack">×</button></div>
+<div class="empty" id="otherContent">등록한 물건을 이곳에서 관리할 수 있어요.</div>
+</section>
+</main>
+</div>
+<div class="overlay" id="overlay"><section class="sheet">
+<div class="sheettop"><h2 id="formTitle">새 물건 등록</h2><button class="close" id="close">×</button></div>
+<form id="form">
+<label for="name">물건 이름 *</label><input class="field" id="name" maxlength="50" placeholder="예: 무선 이어폰" required>
+<label for="category">카테고리</label><select class="field" id="category"><option>전자기기</option><option>생활용품</option><option>의류</option><option>기타</option></select>
+<label for="place">보관 장소 *</label><input class="field" id="place" maxlength="80" placeholder="예: 책상 오른쪽 서랍" required>
+<label for="memo">메모</label><textarea class="field" id="memo" maxlength="250" placeholder="색상이나 특징"></textarea>
+<label for="photo">사진 (선택, 2MB 이하)</label><input class="field" id="photo" type="file" accept="image/*">
+<button class="save" type="submit">저장하기</button>
+</form></section></div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='eodi-dutdeora-items-v2';let data=read(),activeCategory='전체',editId=null,photo='';
+function read(){try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return []}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(data));return true}catch(e){say('저장 공간이 부족해요. 사진 용량을 줄여 주세요.');return false}}
+function safe(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function say(t){let x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2000)}
+function counts(){['전자기기','생활용품','의류','기타'].forEach(c=>document.getElementById('count-'+c).textContent=data.filter(x=>x.category===c).length+'개')}
+function show(view){document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));document.getElementById(view).classList.add('active')}
+function openList(category='전체',query=''){activeCategory=category;document.getElementById('listTitle').textContent=category==='전체'?'내 물건':category;document.getElementById('listSearch').value=query;show('listView');renderList()}
+function renderList(){let q=document.getElementById('listSearch').value.toLowerCase().trim();let found=data.filter(x=>(activeCategory==='전체'||x.category===activeCategory)&&[x.name,x.place,x.memo].join(' ').toLowerCase().includes(q));document.getElementById('items').innerHTML=found.length?found.map(x=>`<article class="item"><div class="thumb">${x.photo?`<img src="${x.photo}" alt="">`:'📦'}</div><strong>${safe(x.name)}</strong><small>${safe(x.category)} · ${safe(x.place)}</small><small>${x.lost?'분실 상태':'보관 중'}</small><div class="actions"><button onclick="toggle('${x.id}')">${x.lost?'찾았어요':'분실'}</button><button onclick="edit('${x.id}')">수정</button><button onclick="del('${x.id}')">삭제</button></div></article>`).join(''):'<div class="empty">아직 등록된 물건이 없어요.<br>새 물건을 등록해 보세요.</div>'}
+function openForm(x=null){editId=x?.id??null;photo=x?.photo??'';document.getElementById('formTitle').textContent=x?'물건 수정':'새 물건 등록';document.getElementById('name').value=x?.name??'';document.getElementById('category').value=x?.category??'전자기기';document.getElementById('place').value=x?.place??'';document.getElementById('memo').value=x?.memo??'';document.getElementById('photo').value='';document.getElementById('overlay').classList.add('show')}
+function closeForm(){document.getElementById('overlay').classList.remove('show')}
+document.getElementById('addBtn').onclick=()=>openForm();document.getElementById('close').onclick=closeForm;
+document.getElementById('overlay').onclick=e=>{if(e.target.id==='overlay')closeForm()};
+document.getElementById('photo').onchange=e=>{let f=e.target.files[0];if(!f)return;if(f.size>2*1024*1024){say('사진은 2MB 이하로 선택해 주세요.');e.target.value='';return}let r=new FileReader();r.onload=()=>photo=r.result;r.readAsDataURL(f)};
+document.getElementById('form').onsubmit=e=>{e.preventDefault();let name=document.getElementById('name').value.trim(),place=document.getElementById('place').value.trim();if(!name||!place)return;let old=data.find(x=>x.id===editId);let obj={id:editId||String(Date.now()),name,place,category:document.getElementById('category').value,memo:document.getElementById('memo').value.trim(),photo,lost:old?.lost||false};if(editId)data=data.map(x=>x.id===editId?obj:x);else data.unshift(obj);persist();counts();closeForm();if(document.getElementById('listView').classList.contains('active'))renderList();say('물건을 저장했어요!')};
+function toggle(id){data=data.map(x=>x.id===id?{...x,lost:!x.lost}:x);persist();counts();renderList()}
+function edit(id){let x=data.find(v=>v.id===id);if(x)openForm(x)}
+function del(id){if(confirm('이 물건을 삭제할까요?')){data=data.filter(x=>x.id!==id);persist();counts();renderList()}}
+document.querySelectorAll('.category').forEach(b=>b.onclick=()=>openList(b.dataset.category));
+document.getElementById('homeSearch').onkeydown=e=>{if(e.key==='Enter')openList('전체',e.target.value)};
+document.getElementById('listSearch').oninput=renderList;
+document.getElementById('backHome').onclick=()=>show('homeView');
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));let t=b.dataset.tab;if(t==='home')show('homeView');else if(t==='search'){openList('전체');document.getElementById('listSearch').focus()}else{document.getElementById('otherTitle').textContent=t==='places'?'보관 장소':'내 정보';document.getElementById('otherContent').textContent=t==='places'?[...new Set(data.map(x=>x.place))].join(' · ')||'아직 등록한 보관 장소가 없어요.':'등록한 물건 '+data.length+'개 · 보관 중 '+data.filter(x=>!x.lost).length+'개 · 분실 '+data.filter(x=>x.lost).length+'개';show('otherView')}});
+document.getElementById('otherBack').onclick=()=>show('homeView');
+document.getElementById('bell').onclick=()=>say(data.some(x=>x.lost)?'분실 상태인 물건이 있어요.':'새로운 알림이 없어요.');
+counts();show('homeView');
+</script>
+</body>
+</html>
